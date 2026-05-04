@@ -6,7 +6,7 @@ export interface GrokAnalysisResult {
 }
 
 class GrokService {
-  private apiKey: string = '';
+  private apiKey: string = import.meta.env.VITE_GROQ_API_KEY || '';
 
   setApiKey(key: string) {
     this.apiKey = key;
