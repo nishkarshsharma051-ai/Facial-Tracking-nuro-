@@ -57,11 +57,11 @@ class RealEyeTrackingService {
   private isRunning    = false;
   private isInited     = false;
   private isProcessing = false;        // guard: no concurrent faceMesh.send()
-  private errorCount   = 0;
   private lastResultMs = 0;            // when we last got a real result
   private callbacks: ((d: RealEyeTrackingData) => void)[] = [];
   private useFallback  = false;        // whether to use face-api.js as backup
   private faceApiLoaded = false;
+  private debugMode    = false;
 
   private blinkCount   = 0;
   private lastBlinkMs  = 0;
@@ -134,6 +134,20 @@ class RealEyeTrackingService {
       console.error('[EyeTrack] init failed:', err);
       return false;
     }
+  }
+
+  async reInitialize() {
+    this.stop();
+    this.isInited = false;
+    this.faceMesh = null;
+    if (this.videoEl && this.canvasEl) {
+      await this.initialize(this.videoEl, this.canvasEl);
+      this.start();
+    }
+  }
+
+  setDebugMode(val: boolean) {
+    this.debugMode = val;
   }
 
   private async initFaceApi() {
@@ -227,6 +241,17 @@ class RealEyeTrackingService {
       ctx.fillStyle = '#fff';
       ctx.font = 'bold 14px monospace';
       ctx.fillText(`⚠ Detection lost (${staleSec.toFixed(0)} s) — checking fallback…`, 20, 26);
+    }
+
+    // ── DEBUG VIEW ────────────────────────────────────────────────────────────
+    if (this.debugMode && this.offscreenCv) {
+      ctx.strokeStyle = '#00ff00';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(cv.width - 170, 50, 160, 120);
+      ctx.drawImage(this.offscreenCv, cv.width - 170, 50, 160, 120);
+      ctx.fillStyle = '#00ff00';
+      ctx.font = '10px monospace';
+      ctx.fillText('AI VISION BUFFER', cv.width - 170, 45);
     }
   }
 
