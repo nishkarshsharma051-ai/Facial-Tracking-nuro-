@@ -169,7 +169,6 @@ class RealEyeTrackingService {
     }
     this.isRunning   = true;
     this.isProcessing = false;
-    this.errorCount  = 0;
     this.lastResultMs = 0;
     this.blinkCount  = 0;
     this.lastBlinkMs = Date.now();
@@ -337,7 +336,8 @@ class RealEyeTrackingService {
         this.onResults({
           multiFaceLandmarks: [landmarks.map(p => ({ x: p.x / dims.width, y: p.y / dims.height, z: 0 }))],
           fromFallback: true,
-          expressions: resized.expressions
+          expressions: resized.expressions,
+          gazeHint: { x: gx, y: gy }
         });
       } else {
         this.onResults({ multiFaceLandmarks: [] });
@@ -352,7 +352,6 @@ class RealEyeTrackingService {
   private onResults(results: any) {
     if (!this.ctx || !this.canvasEl || !this.videoEl) return;
     this.lastResultMs = Date.now();
-    this.errorCount   = 0;
     this.frameCount++;
     
     const { width, height } = this.canvasEl;
@@ -402,7 +401,11 @@ class RealEyeTrackingService {
       const rightOpen = Math.min(1, rightEAR / MAX_OPEN_EAR);
 
       // Iris-based metrics (only if iris landmarks present)
-      const gaze      = hasIris ? this.gazeFromIris(lm) : { x: 0.5, y: 0.5, direction: { horizontal: 0, vertical: 0 } };
+      const gaze      = hasIris ? this.gazeFromIris(lm) : { 
+        x: results.gazeHint?.x ?? 0.5, 
+        y: results.gazeHint?.y ?? 0.5, 
+        direction: { horizontal: 0, vertical: 0 } 
+      };
       const pupilSize = hasIris ? this.irisRadius(lm)   : 4;
       const headPose  = this.headPose(lm);
       const expr      = this.expression(lm, avgEAR);
