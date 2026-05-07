@@ -1,53 +1,87 @@
 import { FC } from 'react';
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
-import { Eye, BarChart3, FileText } from 'lucide-react';
+import { Eye, BarChart3, FileText, LayoutDashboard } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Layout: FC = () => {
   const location = useLocation();
 
   const navigation = [
-    { name: 'Dashboard', href: '/', icon: Eye },
+    { name: 'Dashboard', href: '/', icon: LayoutDashboard },
     { name: 'Sessions', href: '/sessions', icon: BarChart3 },
     { name: 'Reports', href: '/reports', icon: FileText },
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex">
-              <div className="flex-shrink-0 flex items-center">
-                <Eye className="h-8 w-8 text-blue-600" />
-                <span className="ml-2 text-xl font-bold text-gray-900">EyeTrack Pro</span>
+    <div className="min-h-screen relative overflow-x-hidden">
+      {/* Decorative Background Elements */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-blue-500/10 blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-purple-500/10 blur-[120px]" />
+      </div>
+
+      <nav className="sticky top-0 z-50 px-4 py-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="glass-card px-6 py-3 flex justify-between items-center">
+            <div className="flex items-center space-x-3">
+              <div className="bg-blue-600 p-2 rounded-lg shadow-lg shadow-blue-500/30">
+                <Eye className="h-6 w-6 text-white" />
               </div>
-              <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-                {navigation.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = location.pathname === item.href;
-                  return (
-                    <NavLink
-                      key={item.name}
-                      to={item.href}
-                      className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors duration-200 ${
-                        isActive
-                          ? 'border-blue-500 text-gray-900'
-                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                      }`}
-                    >
-                      <Icon className="w-4 h-4 mr-2" />
-                      {item.name}
-                    </NavLink>
-                  );
-                })}
-              </div>
+              <span className="text-xl font-black tracking-tight text-white uppercase italic">
+                EyeTrack <span className="text-blue-500">Pro</span>
+              </span>
+            </div>
+
+            <div className="flex items-center space-x-1 sm:space-x-4">
+              {navigation.map((item) => {
+                const Icon = item.icon;
+                const isActive = location.pathname === item.href;
+                return (
+                  <NavLink
+                    key={item.name}
+                    to={item.href}
+                    className="relative px-4 py-2 rounded-xl transition-all duration-300 group"
+                  >
+                    <div className="flex items-center space-x-2 relative z-10">
+                      <Icon className={`w-4 h-4 transition-colors ${isActive ? 'text-blue-400' : 'text-gray-400 group-hover:text-white'}`} />
+                      <span className={`text-sm font-semibold transition-colors ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-white'}`}>
+                        {item.name}
+                      </span>
+                    </div>
+                    {isActive && (
+                      <motion.div
+                        layoutId="nav-active"
+                        className="absolute inset-0 bg-white/5 border border-white/10 rounded-xl"
+                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                      />
+                    )}
+                  </NavLink>
+                );
+              })}
             </div>
           </div>
         </div>
       </nav>
-      <main>
-        <Outlet />
+
+      <main className="relative z-10">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Outlet />
+          </motion.div>
+        </AnimatePresence>
       </main>
+
+      <footer className="mt-20 py-10 text-center border-t border-white/5">
+        <p className="text-gray-500 text-sm font-medium">
+          &copy; {new Date().getFullYear()} EyeTrack Pro • Advanced Gaze Analytics
+        </p>
+      </footer>
     </div>
   );
 };

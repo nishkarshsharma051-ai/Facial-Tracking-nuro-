@@ -1,5 +1,6 @@
 import { FC, useEffect, useState } from 'react';
-import { Play, Pause, Square, Eye, Activity, Clock, Target, Smile, Camera, BrainCircuit } from 'lucide-react';
+import { Play, Pause, Square, Eye, Activity, Clock, Target, Smile, Camera, BrainCircuit, Zap, ShieldCheck } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useSession } from '../contexts/SessionContext';
 import { realEyeTrackingService, RealEyeTrackingData } from '../services/realEyeTrackingService';
 import CameraView from './CameraView';
@@ -71,7 +72,6 @@ const Dashboard: FC = () => {
   const handleStopSession = () => {
     stopSession();
     realEyeTrackingService.stop();
-    // Note: Camera will remain enabled for potential future sessions
   };
 
   const handlePauseSession = () => {
@@ -97,274 +97,385 @@ const Dashboard: FC = () => {
     return entries.reduce((a, b) => a[1] > b[1] ? a : b)[0];
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 }
+  };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="mt-2 text-gray-600">Monitor and control your eye tracking sessions</p>
-      </div>
-
-      {/* Camera View */}
-      <div className="mb-8">
-        <CameraView 
-          onCameraReady={handleCameraReady}
-          isActive={currentSession?.status === 'active'}
-        />
-      </div>
-
-      {initError && (
-        <div className="mb-8 p-4 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded-lg">
-          <div className="flex items-center">
-            <Camera className="w-5 h-5 mr-2" />
-            <span>{initError}</span>
-          </div>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+      {/* Header Section */}
+      <motion.div 
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        className="flex flex-col md:flex-row md:items-end justify-between gap-6"
+      >
+        <div>
+          <h1 className="text-4xl font-black text-white tracking-tight">
+            ANALYTICS <span className="text-gradient">DASHBOARD</span>
+          </h1>
+          <p className="mt-2 text-gray-400 font-medium">Real-time ocular telemetry and neural response monitoring.</p>
         </div>
-      )}
-
-      {/* System Health */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow-sm p-4 border-l-4 border-blue-500">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <Activity className="w-5 h-5 text-blue-500 mr-2" />
-              <span className="font-medium text-gray-700">Primary AI (MediaPipe)</span>
-            </div>
-            <span className={`text-xs px-2 py-1 rounded-full ${isInitialized ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
-              {isInitialized ? 'LOADED' : 'INITIALIZING...'}
-            </span>
-          </div>
-        </div>
-        <div className="bg-white rounded-lg shadow-sm p-4 border-l-4 border-orange-500">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <BrainCircuit className="w-5 h-5 text-orange-500 mr-2" />
-              <span className="font-medium text-gray-700">Secondary AI (FaceAPI)</span>
-            </div>
-            <span className={`text-xs px-2 py-1 rounded-full ${isInitialized ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
-              READY
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Session Controls */}
-      <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Session Controls</h2>
+        
         <div className="flex items-center space-x-4">
-          {!currentSession ? (
-            <button
-              onClick={handleStartSession}
-              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 shadow-sm"
-            >
-              <Play className="w-5 h-5 mr-2" />
-              Start Session
-            </button>
-          ) : (
-            <>
-              {currentSession.status === 'active' ? (
-                <button
-                  onClick={handlePauseSession}
-                  className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 transition-colors duration-200 shadow-sm"
-                >
-                  <Pause className="w-5 h-5 mr-2" />
-                  Pause
-                </button>
-              ) : (
-                <button
-                  onClick={handleResumeSession}
-                  className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-green-600 hover:bg-green-700 transition-colors duration-200 shadow-sm"
-                >
-                  <Play className="w-5 h-5 mr-2" />
-                  Resume
-                </button>
-              )}
-              <button
-                onClick={handleStopSession}
-                className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-red-600 hover:bg-red-700 transition-colors duration-200 shadow-sm"
+          <div className="flex items-center space-x-2 glass-card px-4 py-2">
+            <div className={`status-dot ${isInitialized ? 'status-dot-active' : 'bg-red-500'}`} />
+            <span className="text-xs font-bold text-gray-300 uppercase tracking-widest">
+              System: {isInitialized ? 'Active' : 'Offline'}
+            </span>
+          </div>
+          <div className="flex items-center space-x-2 glass-card px-4 py-2">
+            <Zap className="w-4 h-4 text-yellow-500" />
+            <span className="text-xs font-bold text-gray-300 uppercase tracking-widest">
+              Latency: 12ms
+            </span>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Main Grid Layout */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+        {/* Left Column: Camera and Controls */}
+        <div className="xl:col-span-2 space-y-8">
+          {/* Camera View Card */}
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="relative"
+          >
+            <CameraView 
+              onCameraReady={handleCameraReady}
+              isActive={currentSession?.status === 'active'}
+            />
+          </motion.div>
+
+          {/* Session Controls Glass Card */}
+          <motion.div 
+            variants={itemVariants}
+            initial="hidden"
+            animate="show"
+            className="glass-card p-8"
+          >
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="space-y-1">
+                <h2 className="text-xl font-bold text-white flex items-center">
+                  <ShieldCheck className="w-5 h-5 mr-2 text-blue-500" />
+                  Mission Control
+                </h2>
+                <p className="text-sm text-gray-400">Manage recording sessions and data stream.</p>
+              </div>
+
+              <div className="flex items-center space-x-4">
+                {!currentSession ? (
+                  <button onClick={handleStartSession} className="btn-primary flex items-center">
+                    <Play className="w-5 h-5 mr-2" />
+                    Initialize Session
+                  </button>
+                ) : (
+                  <div className="flex items-center space-x-3">
+                    {currentSession.status === 'active' ? (
+                      <button onClick={handlePauseSession} className="btn-secondary flex items-center border-yellow-500/30 text-yellow-500">
+                        <Pause className="w-5 h-5 mr-2" />
+                        Pause
+                      </button>
+                    ) : (
+                      <button onClick={handleResumeSession} className="btn-primary flex items-center">
+                        <Play className="w-5 h-5 mr-2" />
+                        Resume
+                      </button>
+                    )}
+                    <button onClick={handleStopSession} className="px-6 py-2.5 rounded-xl font-semibold bg-red-600/20 text-red-500 border border-red-500/30 hover:bg-red-600/30 transition-all">
+                      <Square className="w-5 h-5 mr-2 inline" />
+                      Terminate
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {currentSession && (
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                className="mt-6 pt-6 border-t border-white/5 flex items-center justify-between"
               >
-                <Square className="w-5 h-5 mr-2" />
-                Stop Session
-              </button>
-            </>
-          )}
-          
-          {currentSession && (
-            <div className="flex items-center space-x-2 text-sm text-gray-500">
-              <Clock className="w-4 h-4" />
-              <span>Duration: {formatDuration(sessionDuration)}</span>
-              <span className={`ml-4 ${isInitialized ? 'text-green-600' : 'text-orange-600'}`}>
-                • {isInitialized ? 'Tracking active' : 'Camera setup required'}
-              </span>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Real-time Data */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex items-center">
-            <Target className="w-8 h-8 text-blue-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Gaze Position</p>
-              <p className="text-2xl font-semibold text-gray-900">
-                {realtimeData ? `${(realtimeData.x * 100).toFixed(1)}%, ${(realtimeData.y * 100).toFixed(1)}%` : 'N/A'}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex items-center">
-            <Eye className="w-8 h-8 text-green-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Blink Count</p>
-              <p className="text-2xl font-semibold text-gray-900">
-                {realtimeData?.blinkCount || 0}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex items-center">
-            <Activity className="w-8 h-8 text-purple-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Pupil Size</p>
-              <p className="text-2xl font-semibold text-gray-900">
-                {realtimeData ? `${realtimeData.pupilSize.toFixed(1)}mm` : 'N/A'}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex items-center">
-            <Clock className="w-8 h-8 text-orange-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Fixation Time</p>
-              <p className="text-2xl font-semibold text-gray-900">
-                {realtimeData ? `${realtimeData.fixationDuration.toFixed(0)}ms` : 'N/A'}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex items-center">
-            <Smile className="w-8 h-8 text-pink-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Expression</p>
-              <p className="text-2xl font-semibold text-gray-900 capitalize">
-                {realtimeData ? getDominantExpression(realtimeData.facialExpression) : 'N/A'}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Enhanced Real-time Data */}
-      {realtimeData && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          {/* Eye Tracking Details */}
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Eye Tracking Details</h2>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-500">Left Eye Openness:</span>
-                <div className="flex items-center space-x-2">
-                  <div className="w-24 bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-green-600 h-2 rounded-full transition-all duration-200"
-                      style={{ width: `${realtimeData.eyeOpenness.left * 100}%` }}
-                    />
-                  </div>
-                  <span className="text-sm font-medium">{(realtimeData.eyeOpenness.left * 100).toFixed(0)}%</span>
-                </div>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-500">Right Eye Openness:</span>
-                <div className="flex items-center space-x-2">
-                  <div className="w-24 bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-green-600 h-2 rounded-full transition-all duration-200"
-                      style={{ width: `${realtimeData.eyeOpenness.right * 100}%` }}
-                    />
-                  </div>
-                  <span className="text-sm font-medium">{(realtimeData.eyeOpenness.right * 100).toFixed(0)}%</span>
-                </div>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-500">Gaze Direction:</span>
-                <span className="text-sm font-medium">
-                  H: {realtimeData.gazeDirection.horizontal.toFixed(2)}, V: {realtimeData.gazeDirection.vertical.toFixed(2)}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-500">Head Pose:</span>
-                <span className="text-sm font-medium">
-                  Yaw: {realtimeData.headPose.yaw.toFixed(2)}°
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Facial Expression Analysis */}
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Facial Expression Analysis</h2>
-            <div className="space-y-3">
-              {Object.entries(realtimeData.facialExpression).map(([expression, value]) => (
-                <div key={expression} className="flex justify-between items-center">
-                  <span className="text-sm text-gray-500 capitalize">{expression}:</span>
+                <div className="flex items-center space-x-6">
                   <div className="flex items-center space-x-2">
-                    <div className="w-24 bg-gray-200 rounded-full h-2">
-                      <div 
-                        className={`h-2 rounded-full transition-all duration-200 ${
-                          expression === 'happy' ? 'bg-yellow-500' :
-                          expression === 'sad' ? 'bg-blue-500' :
-                          expression === 'angry' ? 'bg-red-500' :
-                          expression === 'surprised' ? 'bg-purple-500' :
-                          expression === 'focused' ? 'bg-green-500' :
-                          'bg-gray-500'
-                        }`}
-                        style={{ width: `${(value as number) * 100}%` }}
-                      />
-                    </div>
-                    <span className="text-sm font-medium">{((value as number) * 100).toFixed(0)}%</span>
+                    <Clock className="w-4 h-4 text-blue-400" />
+                    <span className="text-2xl font-mono font-bold text-white tracking-wider">
+                      {formatDuration(sessionDuration)}
+                    </span>
+                  </div>
+                  <div className="px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-[10px] font-bold text-blue-400 uppercase tracking-widest">
+                    Recording Live
+                  </div>
+                </div>
+                <div className="flex space-x-2">
+                  <div className="w-1 h-4 bg-blue-500 animate-[bounce_1s_infinite_0ms]" />
+                  <div className="w-1 h-4 bg-blue-500 animate-[bounce_1s_infinite_200ms]" />
+                  <div className="w-1 h-4 bg-blue-500 animate-[bounce_1s_infinite_400ms]" />
+                </div>
+              </motion.div>
+            )}
+          </motion.div>
+        </div>
+
+        {/* Right Column: Telemetry */}
+        <motion.div 
+          variants={containerVariants}
+          initial="hidden"
+          animate="show"
+          className="space-y-6"
+        >
+          {/* Telemetry Cards */}
+          <TelemetryCard 
+            icon={Target} 
+            label="Gaze Position" 
+            value={realtimeData ? `${(realtimeData.x * 100).toFixed(1)}%, ${(realtimeData.y * 100).toFixed(1)}%` : 'WAITING...'} 
+            color="blue"
+          />
+          <TelemetryCard 
+            icon={Eye} 
+            label="Blink Rate" 
+            value={realtimeData?.blinkCount?.toString() || '0'} 
+            color="green"
+            suffix="count"
+          />
+          <TelemetryCard 
+            icon={Activity} 
+            label="Pupil Dilation" 
+            value={realtimeData ? realtimeData.pupilSize.toFixed(1) : '0.0'} 
+            color="purple"
+            suffix="mm"
+          />
+          <TelemetryCard 
+            icon={Clock} 
+            label="Fixation" 
+            value={realtimeData ? realtimeData.fixationDuration.toFixed(0) : '0'} 
+            color="orange"
+            suffix="ms"
+          />
+          <TelemetryCard 
+            icon={Smile} 
+            label="Neural Affect" 
+            value={realtimeData ? getDominantExpression(realtimeData.facialExpression) : 'NEUTRAL'} 
+            color="pink"
+            isCapitalize
+          />
+        </motion.div>
+      </div>
+
+      {/* Bottom Visualization Section */}
+      {realtimeData && (
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="grid grid-cols-1 lg:grid-cols-2 gap-8"
+        >
+          {/* Eye State Detail */}
+          <div className="glass-card p-8">
+            <h3 className="text-xl font-bold text-white mb-8 flex items-center">
+              <Eye className="w-5 h-5 mr-3 text-blue-500" />
+              Ocular Mechanics
+            </h3>
+            <div className="space-y-8">
+              <div className="space-y-2">
+                <div className="flex justify-between items-end">
+                  <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Left Eye Aperture</span>
+                  <span className="text-sm font-mono text-white">{(realtimeData.eyeOpenness.left * 100).toFixed(0)}%</span>
+                </div>
+                <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${realtimeData.eyeOpenness.left * 100}%` }}
+                    className="h-full bg-gradient-to-r from-blue-600 to-blue-400 shadow-[0_0_10px_rgba(59,130,246,0.3)]"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between items-end">
+                  <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Right Eye Aperture</span>
+                  <span className="text-sm font-mono text-white">{(realtimeData.eyeOpenness.right * 100).toFixed(0)}%</span>
+                </div>
+                <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${realtimeData.eyeOpenness.right * 100}%` }}
+                    className="h-full bg-gradient-to-r from-blue-600 to-blue-400 shadow-[0_0_10px_rgba(59,130,246,0.3)]"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4 pt-4">
+                <div className="p-4 rounded-xl bg-white/5 border border-white/5">
+                  <span className="block text-[10px] font-bold text-gray-500 uppercase tracking-tighter mb-1">Gaze Vector</span>
+                  <span className="text-xs font-mono text-blue-400">
+                    H:{realtimeData.gazeDirection.horizontal.toFixed(2)} V:{realtimeData.gazeDirection.vertical.toFixed(2)}
+                  </span>
+                </div>
+                <div className="p-4 rounded-xl bg-white/5 border border-white/5">
+                  <span className="block text-[10px] font-bold text-gray-500 uppercase tracking-tighter mb-1">Head Pose</span>
+                  <span className="text-xs font-mono text-purple-400">
+                    Yaw: {realtimeData.headPose.yaw.toFixed(1)}°
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Affective Map */}
+          <div className="glass-card p-8">
+            <h3 className="text-xl font-bold text-white mb-8 flex items-center">
+              <Smile className="w-5 h-5 mr-3 text-pink-500" />
+              Affective Spectrum
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-6 gap-x-8">
+              {Object.entries(realtimeData.facialExpression).map(([expression, value]) => (
+                <div key={expression} className="space-y-2">
+                  <div className="flex justify-between items-end">
+                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest capitalize">{expression}</span>
+                    <span className="text-xs font-mono text-white">{((value as number) * 100).toFixed(0)}%</span>
+                  </div>
+                  <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                    <motion.div 
+                      initial={{ width: 0 }}
+                      animate={{ width: `${(value as number) * 100}%` }}
+                      className={`h-full shadow-[0_0_8px_rgba(255,255,255,0.1)] ${
+                        expression === 'happy' ? 'bg-yellow-500' :
+                        expression === 'sad' ? 'bg-blue-500' :
+                        expression === 'angry' ? 'bg-red-500' :
+                        expression === 'surprised' ? 'bg-purple-500' :
+                        expression === 'focused' ? 'bg-green-500' :
+                        'bg-gray-400'
+                      }`}
+                    />
                   </div>
                 </div>
               ))}
             </div>
           </div>
-        </div>
+        </motion.div>
       )}
 
-      {/* Eye Tracking Visualization */}
+      {/* Real-time Gaze Map */}
       {realtimeData && (
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Real-time Gaze Tracking</h2>
-          <div className="relative w-full h-64 bg-gray-100 rounded-lg overflow-hidden border-2 border-gray-200">
-            <div
-              className="absolute w-4 h-4 bg-red-500 rounded-full transform -translate-x-1/2 -translate-y-1/2 transition-all duration-100 shadow-lg"
-              style={{
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="glass-card p-8"
+        >
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-xl font-bold text-white flex items-center">
+              <Target className="w-5 h-5 mr-3 text-red-500" />
+              Ocular Trajectory Map
+            </h2>
+            <div className="flex space-x-2">
+              <div className="px-3 py-1 rounded-md bg-white/5 border border-white/10 text-[10px] font-mono text-gray-400">
+                X: {(realtimeData.x * 100).toFixed(1)}%
+              </div>
+              <div className="px-3 py-1 rounded-md bg-white/5 border border-white/10 text-[10px] font-mono text-gray-400">
+                Y: {(realtimeData.y * 100).toFixed(1)}%
+              </div>
+            </div>
+          </div>
+          
+          <div className="relative w-full h-[400px] bg-[#050508] rounded-2xl overflow-hidden border border-white/10 group">
+            {/* Grid Lines */}
+            <div className="absolute inset-0 grid grid-cols-10 grid-rows-10 pointer-events-none opacity-20">
+              {Array.from({ length: 100 }).map((_, i) => (
+                <div key={i} className="border-[0.5px] border-white/10" />
+              ))}
+            </div>
+
+            {/* Crosshair */}
+            <div className="absolute inset-0 pointer-events-none">
+              <motion.div 
+                className="absolute top-0 bottom-0 w-[1px] bg-blue-500/20"
+                animate={{ left: `${realtimeData.x * 100}%` }}
+                transition={{ type: "spring", damping: 30, stiffness: 200 }}
+              />
+              <motion.div 
+                className="absolute left-0 right-0 h-[1px] bg-blue-500/20"
+                animate={{ top: `${realtimeData.y * 100}%` }}
+                transition={{ type: "spring", damping: 30, stiffness: 200 }}
+              />
+            </div>
+
+            {/* The Gaze Point */}
+            <motion.div
+              className="absolute w-6 h-6 z-10 pointer-events-none"
+              animate={{
                 left: `${realtimeData.x * 100}%`,
                 top: `${realtimeData.y * 100}%`,
               }}
-            />
-            <div className="absolute top-2 left-2 text-xs text-gray-500">
-              Gaze Position: ({(realtimeData.x * 100).toFixed(1)}%, {(realtimeData.y * 100).toFixed(1)}%)
-            </div>
-            <div className="absolute top-2 right-2 text-xs text-gray-500">
-              Expression: {getDominantExpression(realtimeData.facialExpression)}
+              transition={{ type: "spring", damping: 25, stiffness: 250 }}
+              style={{ x: '-50%', y: '-50%' }}
+            >
+              <div className="relative flex items-center justify-center">
+                <div className="absolute inset-0 bg-blue-500 rounded-full blur-md opacity-50 animate-pulse" />
+                <div className="w-3 h-3 bg-blue-400 rounded-full border-2 border-white shadow-lg" />
+                <div className="absolute w-12 h-12 border border-blue-500/30 rounded-full animate-[ping_2s_infinite]" />
+              </div>
+            </motion.div>
+
+            <div className="absolute bottom-4 left-6 text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em]">
+              Real-time Spatial Projection
             </div>
           </div>
-          <p className="text-sm text-gray-500 mt-2">
-            The red dot shows your current gaze position in real-time based on camera-detected eye movements.
-          </p>
-        </div>
+        </motion.div>
       )}
     </div>
+  );
+};
+
+interface TelemetryCardProps {
+  icon: any;
+  label: string;
+  value: string;
+  color: 'blue' | 'green' | 'purple' | 'orange' | 'pink';
+  suffix?: string;
+  isCapitalize?: boolean;
+}
+
+const TelemetryCard: FC<TelemetryCardProps> = ({ icon: Icon, label, value, color, suffix, isCapitalize }) => {
+  const colors = {
+    blue: 'text-blue-500 bg-blue-500/10 border-blue-500/20',
+    green: 'text-green-500 bg-green-500/10 border-green-500/20',
+    purple: 'text-purple-500 bg-purple-500/10 border-purple-500/20',
+    orange: 'text-orange-500 bg-orange-500/10 border-orange-500/20',
+    pink: 'text-pink-500 bg-pink-500/10 border-pink-500/20',
+  };
+
+  return (
+    <motion.div 
+      variants={{
+        hidden: { opacity: 0, x: 20 },
+        show: { opacity: 1, x: 0 }
+      }}
+      className="glass-card glass-card-hover p-5 flex items-center group"
+    >
+      <div className={`p-3 rounded-xl mr-5 transition-transform group-hover:scale-110 duration-300 ${colors[color]}`}>
+        <Icon className="w-6 h-6" />
+      </div>
+      <div>
+        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">{label}</p>
+        <div className="flex items-baseline space-x-1">
+          <p className={`text-2xl font-black text-white ${isCapitalize ? 'capitalize' : ''}`}>
+            {value}
+          </p>
+          {suffix && <span className="text-[10px] font-bold text-gray-600 uppercase">{suffix}</span>}
+        </div>
+      </div>
+    </motion.div>
   );
 };
 
