@@ -1,7 +1,7 @@
 import { FC, useState, useEffect } from 'react';
-import { FileDown, Eye, BarChart3, TrendingUp, Target, Heart, FileText, Download } from 'lucide-react';
+import { Eye, BarChart3, TrendingUp, Target, Heart, FileText, Download } from 'lucide-react';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, BarElement, ArcElement } from 'chart.js';
-import { Line, Bar, Pie, Doughnut } from 'react-chartjs-2';
+import { Line, Bar, Doughnut } from 'react-chartjs-2';
 import { useSession } from '../contexts/SessionContext';
 import { ReportService } from '../services/reportService';
 import { SessionReport } from '../types';
