@@ -4,6 +4,21 @@ import { useSession } from '../contexts/SessionContext';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0 }
+};
+
 const Sessions: FC = () => {
   const { sessions, currentSession } = useSession();
 
@@ -22,21 +37,6 @@ const Sessions: FC = () => {
   };
 
   const allSessions = currentSession ? [currentSession, ...sessions] : sessions;
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0 }
-  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
@@ -114,6 +114,7 @@ const Sessions: FC = () => {
             {allSessions.map((session) => (
               <motion.div 
                 key={session.id} 
+                variants={itemVariants}
                 whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.02)' }}
                 className="px-8 py-6 transition-colors duration-150 group"
               >
@@ -206,10 +207,7 @@ const StatCard: FC<StatCardProps> = ({ icon: Icon, label, value, color }) => {
 
   return (
     <motion.div 
-      variants={{
-        hidden: { opacity: 0, y: 20 },
-        show: { opacity: 1, y: 0 }
-      }}
+      variants={itemVariants}
       className="glass-card p-6 flex items-center"
     >
       <div className={`p-3 rounded-xl mr-5 ${colors[color]}`}>
