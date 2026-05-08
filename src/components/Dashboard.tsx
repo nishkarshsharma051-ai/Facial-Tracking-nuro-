@@ -1,5 +1,5 @@
 import { FC, useEffect, useState } from 'react';
-import { Play, Pause, Square, Eye, Activity, Clock, Target, Smile, Camera, BrainCircuit, Zap, ShieldCheck } from 'lucide-react';
+import { Play, Pause, Square, Eye, Activity, Clock, Target, Smile, Zap, ShieldCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useSession } from '../contexts/SessionContext';
 import { realEyeTrackingService, RealEyeTrackingData } from '../services/realEyeTrackingService';
@@ -10,7 +10,7 @@ const Dashboard: FC = () => {
   const [realtimeData, setRealtimeData] = useState<RealEyeTrackingData | null>(null);
   const [sessionDuration, setSessionDuration] = useState(0);
   const [isInitialized, setIsInitialized] = useState(false);
-  const [initError, setInitError] = useState<string>('');
+
 
   useEffect(() => {
     const unsubscribe = realEyeTrackingService.subscribe((data) => {
@@ -42,30 +42,28 @@ const Dashboard: FC = () => {
 
   const handleCameraReady = async (video: HTMLVideoElement, canvas: HTMLCanvasElement) => {
     try {
-      setInitError('');
+
       const success = await realEyeTrackingService.initialize(video, canvas);
       if (success) {
         setIsInitialized(true);
       } else {
-        setInitError('Eye tracking initialization failed. Please try enabling the camera again.');
+        // Eye tracking initialization failed.
       }
     } catch (error) {
       const err = error as Error;
-      setInitError(`Setup error: ${err.message}`);
+
       console.error('Eye tracking initialization error:', err);
     }
   };
 
   const handleStartSession = async () => {
     if (!isInitialized) {
-      setInitError('Please enable the camera first before starting a session.');
       return;
     }
     
     startSession();
     const success = await realEyeTrackingService.start();
     if (!success) {
-      setInitError('Failed to start eye tracking. Please check camera permissions.');
     }
   };
 
