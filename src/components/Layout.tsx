@@ -1,6 +1,6 @@
 import { FC } from 'react';
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
-import { Eye, BarChart3, FileText, LayoutDashboard } from 'lucide-react';
+import { Eye, BarChart3, FileText, LayoutDashboard, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Layout: FC = () => {
@@ -10,6 +10,7 @@ const Layout: FC = () => {
     { name: 'Dashboard', href: '/', icon: LayoutDashboard },
     { name: 'Sessions', href: '/sessions', icon: BarChart3 },
     { name: 'Reports', href: '/reports', icon: FileText },
+    { name: 'Profile', href: '/profile', icon: User },
   ];
 
   return (
