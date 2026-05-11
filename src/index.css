@@ -1,6 +1,6 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
 
 @layer base {
   :root {
@@ -13,7 +13,10 @@
   }
 
   body {
-    @apply bg-[#0a0a0f] text-gray-100 antialiased;
+    background-color: #0a0a0f;
+    color: #f3f4f6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     background-image: 
       radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
       radial-gradient(circle at 100% 100%, rgba(168, 85, 247, 0.05) 0%, transparent 50%);
@@ -24,35 +27,87 @@
 
 @layer components {
   .glass-card {
-    @apply bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl;
+    background-color: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 1rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   }
 
   .glass-card-hover {
-    @apply hover:bg-white/10 hover:border-white/20 transition-all duration-300;
+    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .glass-card-hover:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
   }
 
   .btn-primary {
-    @apply relative overflow-hidden px-6 py-2.5 rounded-xl font-semibold text-white transition-all duration-300
-           bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500
-           shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 active:scale-95;
+    position: relative;
+    overflow: hidden;
+    padding: 0.625rem 1.5rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    color: white;
+    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    background: linear-gradient(to right, #2563eb, #4f46e5);
+    box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.2);
+    border: none;
+    cursor: pointer;
+  }
+
+  .btn-primary:hover {
+    background: linear-gradient(to right, #3b82f6, #6366f1);
+    box-shadow: 0 20px 25px -5px rgba(59, 130, 246, 0.4);
+  }
+
+  .btn-primary:active {
+    transform: scale(0.95);
   }
 
   .btn-secondary {
-    @apply px-6 py-2.5 rounded-xl font-semibold text-white transition-all duration-300
-           bg-white/10 hover:bg-white/20 border border-white/10 hover:border-white/20 backdrop-blur-md;
+    padding: 0.625rem 1.5rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    color: white;
+    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    cursor: pointer;
+  }
+
+  .btn-secondary:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.2);
   }
 
   .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400;
+    background: linear-gradient(to right, #60a5fa, #a855f7);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
 
   .status-dot {
-    @apply w-2 h-2 rounded-full;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 9999px;
   }
 
   .status-dot-active {
-    @apply bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)] animate-pulse;
+    background-color: #22c55e;
+    box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .5; }
 }
 
 /* Custom scrollbar */
@@ -61,9 +116,15 @@
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-transparent;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-white/10 rounded-full hover:bg-white/20 transition-colors;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 9999px;
+  transition: background-color 300ms;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.2);
 }
