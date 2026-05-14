@@ -111,7 +111,14 @@ const Dashboard: FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12 relative">
+      {/* Subtle Technical Grid Overlay */}
+      <div className="absolute inset-0 -z-10 opacity-30 pointer-events-none" 
+           style={{ 
+             backgroundImage: 'radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px)', 
+             backgroundSize: '40px 40px' 
+           }} 
+      />
       {/* Header Section */}
       <motion.div 
         initial={{ opacity: 0, x: -20 }}

@@ -17,19 +17,20 @@ const Layout: FC = () => {
     <div className="min-h-screen relative overflow-x-hidden">
       {/* Decorative Background Elements */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-blue-500/10 blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-purple-500/10 blur-[120px]" />
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-indigo-500/15 blur-[120px] animate-pulse" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-violet-500/10 blur-[120px]" />
+        <div className="absolute top-[20%] right-[10%] w-[30%] h-[30%] rounded-full bg-cyan-500/10 blur-[100px]" />
       </div>
 
       <nav className="sticky top-0 z-50 px-4 py-4">
         <div className="max-w-7xl mx-auto">
           <div className="glass-card px-6 py-3 flex justify-between items-center">
             <div className="flex items-center space-x-3">
-              <div className="bg-blue-600 p-2 rounded-lg shadow-lg shadow-blue-500/30">
+              <div className="bg-indigo-600 p-2 rounded-lg shadow-lg shadow-indigo-500/30">
                 <Eye className="h-6 w-6 text-white" />
               </div>
               <span className="text-xl font-black tracking-tight text-white uppercase italic">
-                EyeTrack <span className="text-blue-500">Pro</span>
+                EyeTrack <span className="text-indigo-500">Pro</span>
               </span>
             </div>
 
