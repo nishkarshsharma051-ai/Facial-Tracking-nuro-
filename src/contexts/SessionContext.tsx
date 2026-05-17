@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useRef, ReactNode } from 'react';
+import { createContext, useContext, useState, useRef, ReactNode, useCallback, useMemo } from 'react';
 import { Session, EyeTrackingData } from '../types';
 
 interface SessionContextType {
@@ -51,7 +51,7 @@ export const SessionProvider: React.FC<SessionProviderProps> = ({ children }) =>
   const [sessions, setSessions] = useState<Session[]>(loadStoredSessions);
   const dataPointCounterRef = useRef(0);
 
-  const saveSessions = (updatedSessions: Session[]) => {
+  const saveSessions = useCallback((updatedSessions: Session[]) => {
     try {
       const optimizedSessions = updatedSessions.map(session => ({
         ...session,
@@ -69,8 +69,8 @@ export const SessionProvider: React.FC<SessionProviderProps> = ({ children }) =>
       } else {
         localStorage.setItem(`eyetrack_sessions_${GUEST_USER_ID}`, sessionData);
       }
-
-      setSessions(updatedSessions);
+      
+      return updatedSessions;
     } catch (error) {
       console.error('Error saving sessions to localStorage:', error);
       const recentSessions = updatedSessions.slice(-5).map(session => ({
@@ -79,84 +79,97 @@ export const SessionProvider: React.FC<SessionProviderProps> = ({ children }) =>
       }));
       try {
         localStorage.setItem(`eyetrack_sessions_${GUEST_USER_ID}`, JSON.stringify(recentSessions));
-        setSessions(recentSessions);
+        return recentSessions;
       } catch {
         localStorage.removeItem(`eyetrack_sessions_${GUEST_USER_ID}`);
-        setSessions([]);
+        return [];
       }
     }
-  };
+  }, []);
 
-  const startSession = () => {
-    if (currentSession?.status === 'active') return;
+  const startSession = useCallback(() => {
+    setCurrentSession(prev => {
+      if (prev?.status === 'active') return prev;
 
-    const newSession: Session = {
-      id: crypto.randomUUID(),
-      userId: GUEST_USER_ID,
-      startTime: new Date(),
-      endTime: null,
-      duration: 0,
-      data: [],
-      status: 'active',
-    };
+      dataPointCounterRef.current = 0;
+      return {
+        id: crypto.randomUUID(),
+        userId: GUEST_USER_ID,
+        startTime: new Date(),
+        endTime: null,
+        duration: 0,
+        data: [],
+        status: 'active',
+      };
+    });
+  }, []);
 
-    setCurrentSession(newSession);
-    dataPointCounterRef.current = 0;
-  };
+  const stopSession = useCallback(() => {
+    setCurrentSession(prevSession => {
+      if (!prevSession || prevSession.status !== 'active') return prevSession;
 
-  const stopSession = () => {
-    if (!currentSession || currentSession.status !== 'active') return;
+      const endTime = new Date();
+      const duration = endTime.getTime() - prevSession.startTime.getTime();
 
-    const endTime = new Date();
-    const duration = endTime.getTime() - currentSession.startTime.getTime();
+      const completedSession: Session = {
+        ...prevSession,
+        endTime,
+        duration,
+        status: 'completed',
+      };
 
-    const completedSession: Session = {
-      ...currentSession,
-      endTime,
-      duration,
-      status: 'completed',
-    };
+      setSessions(prevSessions => {
+        const updatedSessions = [...prevSessions, completedSession];
+        return saveSessions(updatedSessions);
+      });
+      
+      return null;
+    });
+  }, [saveSessions]);
 
-    const updatedSessions = [...sessions, completedSession];
-    saveSessions(updatedSessions);
-    setCurrentSession(null);
-  };
+  const pauseSession = useCallback(() => {
+    setCurrentSession(prev => {
+      if (!prev || prev.status !== 'active') return prev;
+      return { ...prev, status: 'paused' };
+    });
+  }, []);
 
-  const pauseSession = () => {
-    if (!currentSession || currentSession.status !== 'active') return;
-    setCurrentSession({ ...currentSession, status: 'paused' });
-  };
+  const resumeSession = useCallback(() => {
+    setCurrentSession(prev => {
+      if (!prev || prev.status !== 'paused') return prev;
+      return { ...prev, status: 'active' };
+    });
+  }, []);
 
-  const resumeSession = () => {
-    if (!currentSession || currentSession.status !== 'paused') return;
-    setCurrentSession({ ...currentSession, status: 'active' });
-  };
-
-  const addEyeTrackingData = (data: EyeTrackingData) => {
-    if (!currentSession || currentSession.status !== 'active') return;
-
+  const addEyeTrackingData = useCallback((data: EyeTrackingData) => {
     dataPointCounterRef.current += 1;
     const newCounter = dataPointCounterRef.current;
-    if (newCounter % DATA_SAMPLING_INTERVAL === 0 || currentSession.data.length < 10) {
-        setCurrentSession(prevSession => prevSession ? {
+    
+    setCurrentSession(prevSession => {
+      if (!prevSession || prevSession.status !== 'active') return prevSession;
+      
+      if (newCounter % DATA_SAMPLING_INTERVAL === 0 || prevSession.data.length < 10) {
+        return {
           ...prevSession,
           data: [...prevSession.data.slice(-MAX_SESSION_DATA_POINTS + 1), data],
-        } : null);
-    }
-  };
+        };
+      }
+      return prevSession;
+    });
+  }, []);
+
+  const contextValue = useMemo(() => ({
+    currentSession,
+    sessions,
+    startSession,
+    stopSession,
+    pauseSession,
+    resumeSession,
+    addEyeTrackingData,
+  }), [currentSession, sessions, startSession, stopSession, pauseSession, resumeSession, addEyeTrackingData]);
 
   return (
-    <SessionContext.Provider
-      value={{
-        currentSession,
-        sessions,
-        startSession,
-        stopSession,
-        pauseSession,
-        resumeSession,
-        addEyeTrackingData,
-      }}
-    >
+    <SessionContext.Provider value={contextValue}>
       {children}
     </SessionContext.Provider>
   );
