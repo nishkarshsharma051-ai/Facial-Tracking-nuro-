@@ -112,7 +112,7 @@ const Profile: FC = () => {
             ) : (
               isEditing ? <Save className="w-3.5 h-3.5 mr-2" /> : <Shield className="w-3.5 h-3.5 mr-2" />
             )}
-            {saveStatus === 'saving' ? 'Syncing...' : saveStatus === 'saved' ? 'Synced' : isEditing ? 'Commit Profile' : 'Edit Identity'}
+            {saveStatus === 'saving' ? 'Syncing...' : saveStatus === 'saved' ? 'Synced' : isEditing ? 'Save Identity' : 'Edit Identity'}
           </button>
         </div>
       </div>
