@@ -1,5 +1,5 @@
 import { FC, useState, useEffect } from 'react';
-import { Eye, BarChart3, TrendingUp, Target, Heart, FileText, Download, Sparkles } from 'lucide-react';
+import { Eye, BarChart3, TrendingUp, Target, Heart, Download, Sparkles } from 'lucide-react';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, BarElement, ArcElement } from 'chart.js';
 import { Line, Bar, Doughnut } from 'react-chartjs-2';
 import { useSession } from '../contexts/SessionContext';
