@@ -12,32 +12,17 @@ A comprehensive eye tracking application with real-time facial expression detect
 - 👤 User authentication
 - 📱 Responsive design
 
-## Deployment to Netlify
+## Production Deployment
 
-### Option 1: Drag & Drop (Easiest)
+You can deploy this static web application to any modern hosting provider (Vercel, Netlify, GitHub Pages, etc.).
 
-1. Run `npm run build` to create the `dist` folder
-2. Go to [Netlify](https://netlify.com)
-3. Drag and drop the `dist` folder to deploy
-
-### Option 2: Git Integration
-
-1. Push this code to a GitHub repository
-2. Connect your GitHub repo to Netlify
-3. Netlify will automatically build and deploy
-
-### Option 3: Netlify CLI
-
+### Build the Project
 ```bash
-# Install Netlify CLI
-npm install -g netlify-cli
-
-# Build the project
+# Generate the production build
 npm run build
-
-# Deploy to Netlify
-netlify deploy --prod --dir=dist
 ```
+This will create a `dist` folder containing the optimized production assets. You can deploy this folder to your hosting provider of choice.
+
 
 ## Local Development
 
